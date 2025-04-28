@@ -7,39 +7,40 @@
 
 You are working in the product team at eversports that is maintaining the eversports manager. You and your team are working on a bunch of features around memberships within the current quarter.
 
-The team also started an initiative in this quarter to modernize the codebase by refactoring features implemented in an old technology stack to a more modern one.  
+The team also started an initiative in this quarter to modernize the codebase by refactoring features implemented in an old technology stack to a more modern one.
 
 ### Domain: Memberships
 
 A `Membership` allows a user to participate at any class the a specific sport venue within a specific timespan. Within this timespan, the membership is divided into `MembershipPeriods`. The MembershipPeriods represent billing periods that the user has to pay for.
 
-For the scope of this exercise, the domain model was reduced to a reasonable size. 
+For the scope of this exercise, the domain model was reduced to a reasonable size.
 
 #### Entity: Membership
+
 ```ts
 interface Membership {
-    name: string // name of the membership
-    user: number // the user that the membership is assigned to
-    recurringPrice: number // price the user has to pay for every period
-    validFrom: Date // start of the validity
-    validUntil: Date // end of the validity
-    state: string // indicates the state of the membership
-    paymentMethod: string // which payment method will be used to pay for the periods
-    billingInterval: string // the interval unit of the periods
-    billingPeriods: number // the number of periods the membership has
+  name: string; // name of the membership
+  user: number; // the user that the membership is assigned to
+  recurringPrice: number; // price the user has to pay for every period
+  validFrom: Date; // start of the validity
+  validUntil: Date; // end of the validity
+  state: string; // indicates the state of the membership
+  paymentMethod: string; // which payment method will be used to pay for the periods
+  billingInterval: string; // the interval unit of the periods
+  billingPeriods: number; // the number of periods the membership has
 }
 ```
 
 #### Entity: MembershipPeriod
+
 ```ts
 interface MembershipPeriod {
-    membership: number // membership the period is attached to
-    start: Date // indicates the start of the period
-    end: Date // indicates the end of the period
-    state: string
+  membership: number; // membership the period is attached to
+  start: Date; // indicates the start of the period
+  end: Date; // indicates the end of the period
+  state: string;
 }
 ```
-
 
 ## Task 1 - Modernization of the membership codebase (backend only)
 
@@ -69,19 +70,19 @@ When refactoring, you should consider the following aspects:
 > [!NOTE]
 > We provided you with an clean express.js server to run the example. For your implementations, feel free to use any library out there to help you with your solution. If you decide to choose another JavaScript/TypeScript http library/framework (eg. NestJs) update the run config described below if needed, and ensure that the routes of the described actions don't change.
 
-
 ## Task 2 - Design an architecture to provide a membership export (conception only)
 
-The team discovered that users are interested in **exporting all of their memberships** from the system to run their own analysis once a month as a **CSV file**. Because the creation of the export file would take some seconds, the team decided to go for an **asynchronous process** for creating the file and sending it via email. The process will be triggered by an API call of the user. 
+The team discovered that users are interested in **exporting all of their memberships** from the system to run their own analysis once a month as a **CSV file**. Because the creation of the export file would take some seconds, the team decided to go for an **asynchronous process** for creating the file and sending it via email. The process will be triggered by an API call of the user.
 
-Your task is to **map out a diagram** that visualizes the asynchronous process from receiving the request to sending the export file to the user. This diagram should include all software / infrastructure components that will be needed to make the process as stable and scalable as possible. 
+Your task is to **map out a diagram** that visualizes the asynchronous process from receiving the request to sending the export file to the user. This diagram should include all software / infrastructure components that will be needed to make the process as stable and scalable as possible.
 
 Because the team has other things to work on too, this task is timeboxed to **1 hour** and you should share the architecture diagram as a **PDF file**.
 
 > [!NOTE]
-> Feel free to use any tool out there to create your diagram. If you are not familiar with such a tool, you can use www.draw.io. 
+> Feel free to use any tool out there to create your diagram. If you are not familiar with such a tool, you can use www.draw.io.
 
 ## Repository Intro
+
 In this repository you will find an plain express.js server the exposes API endpoints to consumers. For this exercise, the API endpoints are not protected.
 
 ### Installation
@@ -97,6 +98,7 @@ npm run start
 ```
 
 ### Run test
+
 ```sh
 npm run test
 ```
@@ -118,3 +120,22 @@ We believe that great developers are not bound to a specific technology set, but
 - Jest - https://jestjs.io/
 
 Best of luck and looking forward to what you are able to accomplish! 🙂
+
+
+## Assumptions
+- I assume that the existing memberships.json and membership-periods.json contain valid and trusted data structures matching the legacy system.
+- I assume that date fields (validFrom, validUntil, start, end) are stored as strings in the JSON files, and I need to convert them to JavaScript Date objects when loading the data into the service.
+- I assume that the userId for newly created memberships can be hardcoded to 2000, since no authentication system is yet implemented.
+- I assume that changes to memberships and membership periods are done in memory only, and persisting updates back to the JSON files is out of scope for this task.
+- I assume that I must exactly replicate the validation behavior and error messages from the legacy implementation, even if they could be improved.
+- I assume that the legacy behavior for generating membership periods (monthly, yearly, weekly) must be preserved exactly as implemented.
+- I assume that the response shape and behavior for the endpoints must remain identical to the old system to avoid introducing breaking changes.
+
+## Decisions
+- I decided to introduce a service layer (membership.service.ts) to handle all the business logic separately from the route handlers, to improve maintainability and readability.
+- I decided to enforce type safety by using TypeScript interfaces (Membership, MembershipPeriod), and ensured that data loaded from the JSON files is properly parsed and validated into these types.
+- I decided to create helper functions (parseMembership, parseMembershipPeriod, validateMembershipInput) to keep the service code clean, avoid duplication, and make it easier to test individual parts.
+- I decided to assign a new UUID for each newly created membership and membership period using uuidv4(), following the pattern of the legacy system.
+- I decided to preserve the legacy API contract exactly: no changes to response field names, response structure, or error messages.
+
+## Estimated time: 5 hours
